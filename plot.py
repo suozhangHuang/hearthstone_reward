@@ -15,6 +15,21 @@ def sum_list(delta_list):
         sum_l.append(sum_l[-1]+d)
     return np.array(sum_l)
 
+def delta_list(sum_list):
+    delta_l = [sum_list[0]]
+    for i in range(1, len(sum_list)):
+        delta_l.append(sum_list[i]-sum_list[i-1])
+    return np.array(delta_l)
+
+def moving_average(num, window=3):
+    num = np.array(num)
+    MA = np.array(num[0])
+    for i in range(1, window):
+        MA = np.append(MA, np.mean(num[:i]))
+    for i in range(window, num.size):
+        MA = np.append(MA, np.mean(num[i-window:i]))
+    return MA
+
 old_pack = [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 
 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 
 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
@@ -189,24 +204,6 @@ for hour_per_day in [0, 1, 2, 4, 8]:
     plt.plot(np.arange(1, 16*7+1), gold_days_normal, label='不互投')
     plt.plot(np.arange(1, 16*7+1), gold_days_py, label='互投')
 
-    # plt.annotate('%d' % int(gold_days_new1[-1]),
-    #         xy=(16*7, gold_days_new1[-1]),
-    #         color='black',
-    #         bbox=dict(boxstyle='square,pad=0.5', fc='white', ec='k',lw=1 ,alpha=0.5))
-    # plt.annotate('%d' % int(gold_days_new2[-1]),
-    #         xy=(16*7, gold_days_new2[-1]),
-    #         color='black',
-    #         bbox=dict(boxstyle='square,pad=0.5', fc='white', ec='k',lw=1 ,alpha=0.5))
-    # plt.annotate('%d' % int(gold_days_normal[-1]),
-    #         xy=(16*7, gold_days_normal[-1]),
-    #         color='black',
-    #         bbox=dict(boxstyle='square,pad=0.5', fc='white', ec='k',lw=1 ,alpha=0.5))
-    # plt.annotate('%d' % int(gold_days_py[-1]),
-    #         xy=(16*7, gold_days_py[-1]),
-    #         color='black',
-    #         bbox=dict(boxstyle='square,pad=0.5', fc='white', ec='k',lw=1 ,alpha=0.5))
-
-
     plt.annotate('%d' % int(gold_days_new1[-1]),
             xy=(16*7, gold_days_new1[-1]),
             color='blue')
@@ -226,4 +223,56 @@ for hour_per_day in [0, 1, 2, 4, 8]:
     plt.ylabel('金币值')
     plt.savefig('img/收益比较-每天%d小时.png' % hour_per_day)
     plt.savefig('img/收益比较-每天%d小时.svg' % hour_per_day)
+    plt.close()
+
+
+########################################################
+# 绘制游戏时间-收益曲线                                    #
+########################################################
+
+hour_per_day = np.linspace(0, 8, 100)
+
+exp_days = 16*7 * (base_exp + achievement_exp + 350*hour_per_day)
+gold_days_new1 = gold_exp(exp_days)
+gold_days_new2 = gold_exp(exp_days*1.1)
+
+gold_days_normal = 16*7*(60 + (hour_per_day/2*(60/15)*0.5*10/3 < 100) * (hour_per_day/2*(60/15)*0.5*10/3 - 100) + 100)
+gold_days_py = 16*7*(60 + (hour_per_day/2*(60/1)*0.5*10/3 < 100) * (hour_per_day/2*(60/1)*0.5*10/3 - 100) + 100)
+
+plt.plot(hour_per_day, gold_days_new1, label='战令收益（没有通行证）')
+plt.plot(hour_per_day, gold_days_new2, label='战令收益（有通行证）')
+plt.plot(hour_per_day, gold_days_normal, label='不互投')
+plt.plot(hour_per_day, gold_days_py, label='互投')
+
+plt.title('每天游戏时间-收益曲线')
+plt.legend()
+plt.xlabel('每天游戏时间')
+plt.ylabel('整个版本的金币收益')
+plt.savefig('img/每天游戏时间-收益曲线.png')
+plt.savefig('img/每天游戏时间-收益曲线.svg')
+plt.close()
+
+########################################################
+# 绘制时间-收益率曲线                                     #
+########################################################
+
+for hour_per_day in [0, 1, 2, 4, 8]:
+    exp_days = sum_list(np.ones(16*7) * (base_exp+achievement_exp) + 350*hour_per_day)
+    gold_days_new1 = moving_average(delta_list(gold_exp(exp_days)), window=14)
+    gold_days_new2 = moving_average(delta_list(gold_exp(exp_days*1.1)), window=14)
+
+    gold_days_normal = np.ones(16*7)*(60 + min(hour_per_day/2*(60/15)*0.5*10/3, 100))
+    gold_days_py = np.ones(16*7)*(60 + min(hour_per_day/2*(60/1)*0.5*10/3, 100))
+
+    plt.plot(np.arange(1, 16*7+1), gold_days_new1, label='战令收益（没有通行证）')
+    plt.plot(np.arange(1, 16*7+1), gold_days_new2, label='战令收益（有通行证）')
+    plt.plot(np.arange(1, 16*7+1), gold_days_normal, label='不互投')
+    plt.plot(np.arange(1, 16*7+1), gold_days_py, label='互投')
+
+    plt.legend()
+    plt.title('收益率-每天%d小时' % hour_per_day)
+    plt.xlabel('从新版本开始的天数')
+    plt.ylabel('每天的金币收益')
+    plt.savefig('img/收益率-每天%d小时.png' % hour_per_day)
+    plt.savefig('img/收益率-每天%d小时.svg' % hour_per_day)
     plt.close()
