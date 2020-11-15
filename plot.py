@@ -160,33 +160,6 @@ plt.savefig('img/折算成金币的时间收益曲线（有通行证）.svg')
 plt.close()
 
 
-# ########################################################
-# # 比较有没有战令的收益曲线                                 #
-# ########################################################
-
-# for hour_per_day in [0, 1, 2, 4, 8]:
-#     exp_days = sum_list(np.ones(16*7) * (base_exp+achievement_exp) + 350*hour_per_day)
-#     plt.plot(np.arange(1, 16*7+1), gold_exp(exp_days), label='没有通行证')
-#     plt.plot(np.arange(1, 16*7+1), gold_exp(exp_days*1.1), label='有通行证')
-
-#     plt.annotate('%d' % int(gold_exp(exp_days[-1])),
-#             xy=(16*7, gold_exp(exp_days[-1])),
-#             color='black',
-#             bbox=dict(boxstyle='square,pad=0.5', fc='white', ec='k',lw=1 ,alpha=0.8))
-#     plt.annotate('%d' % int(gold_exp(exp_days[-1]*1.1)),
-#             xy=(16*7, gold_exp(exp_days[-1]*1.1)),
-#             color='black',
-#             bbox=dict(boxstyle='square,pad=0.5', fc='white', ec='k',lw=1 ,alpha=0.8))
-
-#     plt.legend()
-#     plt.title('折算成金币的收益比较-每天%d小时' % hour_per_day)
-#     plt.xlabel('从新版本开始的天数')
-#     plt.ylabel('金币值')
-#     plt.savefig('img/折算成金币的收益比较-每天%d小时.png' % hour_per_day)
-#     plt.savefig('img/折算成金币的收益比较-每天%d小时.svg' % hour_per_day)
-#     plt.close()
-
-
 ########################################################
 # 与之前的收益进行比较                                    #
 ########################################################
@@ -196,12 +169,15 @@ for hour_per_day in [0, 1, 2, 4, 8]:
     gold_days_new1 = gold_exp(exp_days)
     gold_days_new2 = gold_exp(exp_days*1.1)
 
-    gold_days_normal = sum_list(np.ones(16*7)*(60 + min(hour_per_day/2*(60/15)*0.5*10/3, 100)))
+    gold_days_normal1 = sum_list(np.ones(16*7)*(60 + min(hour_per_day*(60/15)*0.5*10/3, 100)))
+    gold_days_normal2 = sum_list(np.ones(16*7)*(60 + min(hour_per_day/2*(60/3)*0.5*10/3, 100)))
+    gold_days_quick = sum_list(np.ones(16*7)*(60 + min(hour_per_day/2*(60/3)*0.5*10/3, 100)))
     gold_days_py = sum_list(np.ones(16*7)*(60 + min(hour_per_day/2*(60/1)*0.5*10/3, 100)))
 
     plt.plot(np.arange(1, 16*7+1), gold_days_new1, label='战令收益（没有通行证）')
     plt.plot(np.arange(1, 16*7+1), gold_days_new2, label='战令收益（有通行证）')
-    plt.plot(np.arange(1, 16*7+1), gold_days_normal, label='不互投')
+    plt.plot(np.arange(1, 16*7+1), gold_days_normal1, label='不互投')
+    plt.plot(np.arange(1, 16*7+1), gold_days_normal2, label='不互投（快攻3min）')
     plt.plot(np.arange(1, 16*7+1), gold_days_py, label='互投')
 
     plt.annotate('%d' % int(gold_days_new1[-1]),
@@ -210,12 +186,15 @@ for hour_per_day in [0, 1, 2, 4, 8]:
     plt.annotate('%d' % int(gold_days_new2[-1]),
             xy=(16*7, gold_days_new2[-1]),
             color='orange')
-    plt.annotate('%d' % int(gold_days_normal[-1]),
-            xy=(16*7, gold_days_normal[-1]),
+    plt.annotate('%d' % int(gold_days_normal1[-1]),
+            xy=(16*7, gold_days_normal1[-1]),
             color='green')
+    plt.annotate('%d' % int(gold_days_normal2[-1]),
+            xy=(16*7, gold_days_normal2[-1]),
+            color='red')
     plt.annotate('%d' % int(gold_days_py[-1]),
             xy=(16*7, gold_days_py[-1]),
-            color='red')
+            color='purple')
 
     plt.legend()
     plt.title('收益比较-每天%d小时' % hour_per_day)
@@ -236,7 +215,7 @@ exp_days = 16*7 * (base_exp + achievement_exp + 350*hour_per_day)
 gold_days_new1 = gold_exp(exp_days)
 gold_days_new2 = gold_exp(exp_days*1.1)
 
-gold_days_normal = 16*7*(60 + (hour_per_day/2*(60/15)*0.5*10/3 < 100) * (hour_per_day/2*(60/15)*0.5*10/3 - 100) + 100)
+gold_days_normal = 16*7*(60 + (hour_per_day*(60/15)*0.5*10/3 < 100) * (hour_per_day*(60/15)*0.5*10/3 - 100) + 100)
 gold_days_py = 16*7*(60 + (hour_per_day/2*(60/1)*0.5*10/3 < 100) * (hour_per_day/2*(60/1)*0.5*10/3 - 100) + 100)
 
 plt.plot(hour_per_day, gold_days_new1, label='战令收益（没有通行证）')
@@ -261,7 +240,7 @@ for hour_per_day in [0, 1, 2, 4, 8]:
     gold_days_new1 = moving_average(delta_list(gold_exp(exp_days)), window=14)
     gold_days_new2 = moving_average(delta_list(gold_exp(exp_days*1.1)), window=14)
 
-    gold_days_normal = np.ones(16*7)*(60 + min(hour_per_day/2*(60/15)*0.5*10/3, 100))
+    gold_days_normal = np.ones(16*7)*(60 + min(hour_per_day*(60/15)*0.5*10/3, 100))
     gold_days_py = np.ones(16*7)*(60 + min(hour_per_day/2*(60/1)*0.5*10/3, 100))
 
     plt.plot(np.arange(1, 16*7+1), gold_days_new1, label='战令收益（没有通行证）')
